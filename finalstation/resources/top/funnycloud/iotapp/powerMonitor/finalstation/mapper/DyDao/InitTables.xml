@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.funnycloud.iotapp.powerMonitor.finalstation.dao.IDao.DyDao.TInitTableDao">
+
+   <select id="selectTableNames" resultType="java.lang.String">
+    select table_name from information_schema.tables where table_schema= #{dbName,jdbcType=VARCHAR} and table_type='base table';
+  </select>
+
+    <update id="createTmpTable" parameterType="java.lang.String">
+
+        select table_name from information_schema.tables where  table_type='base table' limit 1;
+        <if test="tableNames.indexOf(',t_manage_alarm,') == -1">
+            CREATE TABLE `t_manage_alarm` (
+            `f_id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `f_RecordID` char(45) NOT NULL COMMENT '记录序号',
+            `f_Description` varchar(4000) DEFAULT NULL COMMENT '界面名称',
+            `f_StartTimes` datetime NOT NULL COMMENT '开始时间',
+            `f_EndTimes` datetime DEFAULT NULL COMMENT '结束时间',
+            `f_EquipmentCD` varchar(10) DEFAULT NULL COMMENT '设备编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '所属项目编号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '所属公司编号',
+            `f_Remarks` varchar(200) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT NULL COMMENT '编制时间',
+            `f_UserCD` varchar(20) DEFAULT NULL COMMENT '编制人员',
+            `f_ExcuteFlag` int(11) DEFAULT NULL COMMENT '处理标识',
+            `f_NoticeFlag` int(11) DEFAULT NULL COMMENT '信息提示标识',
+            `f_AlarmFlag` int(11) DEFAULT NULL COMMENT '报警标识',
+            `f_PointCD` varchar(20) DEFAULT NULL COMMENT '点集合',
+            `f_PointProperty` varchar(20) DEFAULT NULL COMMENT '对应t_config_point表中的property字段',
+            `f_UploadFlag` int(11) DEFAULT NULL COMMENT '结束标记 -1 未结束 0非正常结束 1正常结束 2point超时遇到inquiryTask超时被强制关闭',
+            `f_AlarmLevel` int(11) DEFAULT NULL COMMENT '报警级别 1-5为数值超限报警 -1为采样超时报警',
+            `f_UploadTimes` datetime DEFAULT NULL COMMENT '上传时间',
+            `f_ExceptionType` int(11) DEFAULT NULL COMMENT '1采集报警 2数据报警 ',
+            `f_IsMission` int(11) DEFAULT NULL COMMENT '是否误报 0不是误报 1是误报',
+            PRIMARY KEY (`f_id`),
+            UNIQUE KEY `f_RecordID_UNIQUE` (`f_RecordID`),
+            index t_manage_alarm_StartTimes(f_StartTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_realtime_alarm,') == -1">
+            CREATE TABLE `t_realtime_alarm` (
+            `f_RecordID` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_manageAlarmID` char(45) DEFAULT NULL,
+            `f_PointProperty` varchar(20) DEFAULT NULL,
+            `f_Description` varchar(500) DEFAULT NULL COMMENT '异常描述',
+            `f_CreateTimes` datetime DEFAULT NULL COMMENT '发生时间',
+            `f_PointCD` varchar(50) DEFAULT NULL COMMENT '采样点',
+            `f_Remarks` varchar(500) DEFAULT NULL COMMENT '备注',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '站点编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_AlarmLevel` int(11) DEFAULT NULL COMMENT '报警级别 1-5为数值超限报警 -1为采样超时报警',
+            PRIMARY KEY (`f_RecordID`),
+            index t_realtime_alarm_CreateTimes(f_CreateTimes),
+            index t_realtime_alarm_manageAlarmID(f_manageAlarmID)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_point_variance_ratio,') == -1">
+            CREATE TABLE `t_point_variance_ratio` (
+            `f_id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `f_companycd` varchar(10) DEFAULT NULL,
+            `f_ProjectCD` varchar(20) DEFAULT NULL,
+            `f_RoomCD` varchar(30) DEFAULT NULL,
+            `f_pointcd` varchar(45) DEFAULT NULL,
+            `f_time` datetime DEFAULT NULL COMMENT '发生时间',
+            `f_ratio` double DEFAULT NULL COMMENT '变化率',
+            PRIMARY KEY (`f_id`),
+            index t_point_variance_ratio_time(f_time)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+
+        </if>
+        <if test="tableNames.indexOf(',t_point_value_day,') == -1">
+            CREATE TABLE `t_point_value_day` (
+            `f_RecordID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_ReceivedTimes` char(8) DEFAULT NULL COMMENT '接收时间 格式(yyyyMMdd)',
+            `f_UploadFlag` int(10) unsigned NOT NULL COMMENT '上传标识',
+            `f_UploadTimes` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT 'json数据列,原始数据类型 map String,value,含义: pointcd-value',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_point_value_day_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_ReceivedTimes`,`f_DataType`)
+            ,index t_point_value_day_ReceivedTimes(f_ReceivedTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_point_value_hour,') == -1">
+            CREATE TABLE `t_point_value_hour` (
+            `f_RecordID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_ReceivedTimes` char(10) DEFAULT NULL COMMENT '接收时间 格式(yyyyMMddHH)',
+            `f_UploadFlag` int(10) unsigned NOT NULL COMMENT '上传标识',
+            `f_UploadTimes` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT 'json数据列,原始数据类型 map String,value,含义: pointcd-value',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_point_value_hour_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_ReceivedTimes`,`f_DataType`)
+            ,index t_point_value_hour_ReceivedTimes(f_ReceivedTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_point_value_minute,') == -1">
+            CREATE TABLE `t_point_value_minute` (
+            `f_RecordID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_ReceivedTimes` char(12) DEFAULT NULL COMMENT '接收时间 格式(yyyyMMddHHmm)',
+            `f_UploadFlag` int(10) unsigned NOT NULL COMMENT '上传标识',
+            `f_UploadTimes` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT 'json数据列,原始数据类型 map String,value,含义: pointcd-value',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_point_value_minute_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_ReceivedTimes`,`f_DataType`)
+            ,index t_point_value_minute_ReceivedTimes(f_ReceivedTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_point_value_month,') == -1">
+            CREATE TABLE `t_point_value_month` (
+            `f_RecordID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_ReceivedTimes` char(6) DEFAULT NULL COMMENT '接收时间 格式(yyyyMM)',
+            `f_UploadFlag` int(10) unsigned NOT NULL COMMENT '上传标识',
+            `f_UploadTimes` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT 'json数据列,原始数据类型 map String,value,含义: pointcd-value',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_point_value_month_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_ReceivedTimes`,`f_DataType`),
+            index t_point_value_month_ReceivedTimes(f_ReceivedTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_point_value_year,') == -1">
+            CREATE TABLE `t_point_value_year` (
+            `f_RecordID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_ReceivedTimes` char(4) DEFAULT NULL COMMENT '接收时间 格式(yyyy)',
+            `f_UploadFlag` int(10) unsigned NOT NULL COMMENT '上传标识',
+            `f_UploadTimes` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT 'json数据列,原始数据类型 map String,value,含义: pointcd-value',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_point_value_year_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_ReceivedTimes`,`f_DataType`)
+            ,index t_point_value_year_ReceivedTimes(f_ReceivedTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_report_point_day,') == -1">
+            CREATE TABLE `t_report_point_day` (
+            `f_RecordID` int(11) NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT CURRENT_TIMESTAMP,
+            `f_CreateTimes` char(8) DEFAULT NULL COMMENT '接收时间 格式(yyyyMMdd)',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT '{pointcd:ReportPointJosnModel}',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_report_point_day_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_CreateTimes`,`f_DataType`)
+            ,index t_report_point_day_CreateTimes(f_CreateTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_report_point_hour,') == -1">
+            CREATE TABLE `t_report_point_hour` (
+            `f_RecordID` int(11) NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT CURRENT_TIMESTAMP,
+            `f_CreateTimes` char(10) DEFAULT NULL COMMENT '接收时间 格式(yyyyMMddHH)',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT '{pointcd:ReportPointJosnModel}',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_report_point_hour_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_CreateTimes`,`f_DataType`)
+            ,index t_report_point_hour_CreateTimes(f_CreateTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_report_point_month,') == -1">
+            CREATE TABLE `t_report_point_month` (
+            `f_RecordID` int(11) NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT CURRENT_TIMESTAMP,
+            `f_CreateTimes` char(6) DEFAULT NULL COMMENT '接收时间 格式(yyyyMM)',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT '{pointcd:ReportPointJosnModel}',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_report_point_month_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_CreateTimes`,`f_DataType`)
+            ,index t_report_point_month_CreateTimes(f_CreateTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_report_point_year,') == -1">
+            CREATE TABLE `t_report_point_year` (
+            `f_RecordID` int(11) NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_DataType` varchar(30) DEFAULT NULL COMMENT '数据类型( ia ib ic p pf t ta efa efa-d等）',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT CURRENT_TIMESTAMP,
+            `f_CreateTimes` char(4) DEFAULT NULL COMMENT '接收时间 格式(yyyy)',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT '{pointcd:ReportPointJosnModel}',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_report_point_year_upInsert`
+            (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_CreateTimes`,`f_DataType`)
+            ,index t_report_point_year_CreateTimes(f_CreateTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_report_room_energy_day,') == -1">
+            CREATE TABLE `t_report_room_energy_day` (
+            `f_RecordID` int(11) NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT CURRENT_TIMESTAMP,
+            `f_CreateTimes` char(8) DEFAULT NULL COMMENT '接收时间 格式(yyyyMMdd)',
+            `f_SaftyDayCount` int(11) DEFAULT NULL COMMENT '安全运行天数',
+            `f_DayAlarmCount` int(11) DEFAULT NULL COMMENT '当天异常用电次数',
+            `f_MonthAlarmCount` int(11) DEFAULT NULL COMMENT '当月异常用电次数',
+            `f_YearAlarmCount` int(11) DEFAULT NULL COMMENT '当年异常用电次数',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT ' * aaa 当前时段内aaa用能\n * bbb 当前时段内bbb用能\n * ....................\n *
+            xxx 当前时段内bbb用能\n * xxx为用能类型：如efa、efr、era、err等',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_report_room_energy_day_upInsert` (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_CreateTimes`),
+            index t_report_room_energy_day_CreateTimes(f_CreateTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_report_room_energy_hour,') == -1">
+            CREATE TABLE `t_report_room_energy_hour` (
+            `f_RecordID` int(11) NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT CURRENT_TIMESTAMP,
+            `f_CreateTimes` char(10) DEFAULT NULL COMMENT '接收时间 格式(yyyyMMddHH)',
+            `f_SaftyDayCount` int(11) DEFAULT NULL COMMENT '安全运行天数',
+            `f_DayAlarmCount` int(11) DEFAULT NULL COMMENT '当天异常用电次数',
+            `f_MonthAlarmCount` int(11) DEFAULT NULL COMMENT '当月异常用电次数',
+            `f_YearAlarmCount` int(11) DEFAULT NULL COMMENT '当年异常用电次数',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT ' * aaa 当前时段内aaa用能\n * bbb 当前时段内bbb用能\n * ....................\n *
+            xxx 当前时段内bbb用能\n * xxx为用能类型：如efa、efr、era、err等',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_report_room_energy_hour_upInsert` (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_CreateTimes`)
+            ,index t_report_room_energy_hour_CreateTimes(f_CreateTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_report_room_energy_month,') == -1">
+            CREATE TABLE `t_report_room_energy_month` (
+            `f_RecordID` int(11) NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT CURRENT_TIMESTAMP,
+            `f_CreateTimes` char(6) DEFAULT NULL COMMENT '接收时间 格式(yyyyMM)',
+            `f_SaftyDayCount` int(11) DEFAULT NULL COMMENT '安全运行天数',
+            `f_DayAlarmCount` int(11) DEFAULT NULL COMMENT '当天异常用电次数',
+            `f_MonthAlarmCount` int(11) DEFAULT NULL COMMENT '当月异常用电次数',
+            `f_YearAlarmCount` int(11) DEFAULT NULL COMMENT '当年异常用电次数',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT ' * aaa 当前时段内aaa用能\n * bbb 当前时段内bbb用能\n * ....................\n *
+            xxx 当前时段内bbb用能\n * xxx为用能类型：如efa、efr、era、err等',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_report_room_energy_month_upInsert` (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_CreateTimes`)
+            , index t_report_room_energy_month_CreateTimes(f_CreateTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+        <if test="tableNames.indexOf(',t_report_room_energy_year,') == -1">
+            CREATE TABLE `t_report_room_energy_year` (
+            `f_RecordID` int(11) NOT NULL AUTO_INCREMENT COMMENT '记录序号',
+            `f_CompanyCD` varchar(10) DEFAULT NULL COMMENT '公司编号',
+            `f_ProjectCD` varchar(20) DEFAULT NULL COMMENT '项目编号',
+            `f_RoomCD` varchar(30) DEFAULT NULL COMMENT '场所编号',
+            `f_Remarks` varchar(100) DEFAULT NULL COMMENT '备注',
+            `f_UpdateTimes` datetime DEFAULT CURRENT_TIMESTAMP,
+            `f_CreateTimes` char(4) DEFAULT NULL COMMENT '接收时间 格式(yyyy)',
+            `f_SaftyDayCount` int(11) DEFAULT NULL COMMENT '安全运行天数',
+            `f_DayAlarmCount` int(11) DEFAULT NULL COMMENT '当天异常用电次数',
+            `f_MonthAlarmCount` int(11) DEFAULT NULL COMMENT '当月异常用电次数',
+            `f_YearAlarmCount` int(11) DEFAULT NULL COMMENT '当年异常用电次数',
+            `f_JsonData` mediumtext DEFAULT NULL COMMENT ' * aaa 当前时段内aaa用能\n * bbb 当前时段内bbb用能\n * ....................\n *
+            xxx 当前时段内bbb用能\n * xxx为用能类型：如efa、efr、era、err等',
+            PRIMARY KEY (`f_RecordID`),
+            UNIQUE KEY `t_report_room_energy_year_upInsert` (`f_CompanyCD`,`f_ProjectCD`,`f_RoomCD`,`f_CreateTimes`)
+            , index t_report_room_energy_year_CreateTimes(f_CreateTimes)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+        </if>
+
+    </update>
+
+
+    <delete id="clearTableByDate_manage_alarm">
+    delete from t_manage_alarm            where f_StartTimes   <![CDATA[  <  ]]>  #{startTime,jdbcType=TIMESTAMP} ;
+    OPTIMIZE TABLE t_manage_alarm;
+      </delete>
+    <delete id="clearTableByDate_realtime_alarm">
+    delete from t_realtime_alarm          where f_CreateTimes  <![CDATA[  <  ]]>  #{startTime,jdbcType=TIMESTAMP} ;
+    OPTIMIZE TABLE t_realtime_alarm;
+      </delete>
+    <delete id="clearTableByDate_point_variance_ratio">
+    delete from t_point_variance_ratio    where f_time         <![CDATA[  <  ]]>  #{startTime,jdbcType=TIMESTAMP} ;
+    OPTIMIZE TABLE t_point_variance_ratio;
+      </delete>
+    <delete id="clearTableByDate_point_value_minute">
+    delete from t_point_value_minute  where f_ReceivedTimes  <![CDATA[  <  ]]>  #{startMinuteStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_point_value_minute;
+      </delete>
+    <delete id="clearTableByDate_point_value_hour">
+    delete from t_point_value_hour    where f_ReceivedTimes  <![CDATA[  <  ]]>  #{startHourStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_point_value_hour;
+      </delete>
+    <delete id="clearTableByDate_point_value_day">
+    delete from t_point_value_day     where f_ReceivedTimes  <![CDATA[  <  ]]>  #{startDayStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_point_value_day;
+      </delete>
+    <delete id="clearTableByDate_point_value_month">
+    delete from t_point_value_month   where f_ReceivedTimes  <![CDATA[  <  ]]>  #{startMonthStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_point_value_month;
+      </delete>
+    <delete id="clearTableByDate_point_value_year">
+    delete from t_point_value_year    where f_ReceivedTimes  <![CDATA[  <  ]]>  #{startYearStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_point_value_year;
+      </delete>
+    <delete id="clearTableByDate_report_point_hour">
+    delete from t_report_point_hour    where f_CreateTimes  <![CDATA[  <  ]]>  #{startHourStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_report_point_hour;
+      </delete>
+    <delete id="clearTableByDate_report_point_day">
+    delete from t_report_point_day     where f_CreateTimes  <![CDATA[  <  ]]>  #{startDayStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_report_point_day;
+      </delete>
+    <delete id="clearTableByDate_report_point_month">
+    delete from t_report_point_month   where f_CreateTimes  <![CDATA[  <  ]]>  #{startMonthStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_report_point_month;
+      </delete>
+    <delete id="clearTableByDate_report_point_year">
+    delete from t_report_point_year    where f_CreateTimes  <![CDATA[  <  ]]>  #{startYearStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_report_point_year;
+      </delete>
+    <delete id="clearTableByDate_report_room_energy_hour">
+    delete from t_report_room_energy_hour    where f_CreateTimes  <![CDATA[  <  ]]>  #{startHourStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_report_room_energy_hour;
+      </delete>
+    <delete id="clearTableByDate_report_room_energy_day">
+    delete from t_report_room_energy_day     where f_CreateTimes  <![CDATA[  <  ]]>  #{startDayStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_report_room_energy_day;
+      </delete>
+    <delete id="clearTableByDate_report_room_energy_month">
+    delete from t_report_room_energy_month   where f_CreateTimes  <![CDATA[  <  ]]>  #{startMonthStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_report_room_energy_month;
+      </delete>
+    <delete id="clearTableByDate_report_room_energy_year">
+    delete from t_report_room_energy_year    where f_CreateTimes  <![CDATA[  <  ]]>  #{startYearStr,jdbcType=VARCHAR} ;
+    OPTIMIZE TABLE t_report_room_energy_year;
+
+  </delete>
+</mapper>

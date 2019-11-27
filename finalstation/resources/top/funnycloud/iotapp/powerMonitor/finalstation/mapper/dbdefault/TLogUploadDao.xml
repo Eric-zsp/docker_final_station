@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.funnycloud.iotapp.powerMonitor.finalstation.dao.IDao.dbDefault.TLogUploadDao">
+  <resultMap id="BaseResultMap" type="top.funnycloud.iotapp.powerMonitor.finalstation.models.TLogUploadModel">
+    <id column="f_id" jdbcType="BIGINT" property="p_id" />
+    <result column="f_RoomCD" jdbcType="VARCHAR" property="p_roomcd" />
+    <result column="f_UploadDataTypeEnum" jdbcType="VARCHAR" property="p_uploaddatatypeenum" />
+    <result column="f_timeType" jdbcType="VARCHAR" property="p_timetype" />
+    <result column="f_msgId" jdbcType="VARCHAR" property="p_msgid" />
+    <result column="f_uploadTag" jdbcType="INTEGER" property="p_uploadtag" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    f_id,  f_RoomCD, f_UploadDataTypeEnum, f_timeType, f_msgId, f_uploadTag
+  </sql>
+
+  <select id="select"  resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_log_upload
+
+    LIMIT  0,#{count,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKeys" >
+    delete from t_log_upload
+    where
+    <if test="fIds!=null ">
+       f_id in
+      <foreach item="item"
+               index="index"
+               collection="fIds"
+               open="("
+               separator=","
+               close=")">
+        #{item}
+      </foreach>
+    </if>
+  </delete>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from t_log_upload
+    where f_id = #{p_id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="top.funnycloud.iotapp.powerMonitor.finalstation.models.TLogUploadModel">
+    <selectKey keyProperty="p_id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_log_upload ( f_RoomCD, f_UploadDataTypeEnum, f_timeType, f_msgId,
+      f_uploadTag)
+    values ( #{p_roomcd,jdbcType=VARCHAR}, #{p_uploaddatatypeenum,jdbcType=VARCHAR}, #{p_timetype,jdbcType=VARCHAR}, #{p_msgid,jdbcType=VARCHAR},
+      #{p_uploadtag,jdbcType=INTEGER})
+  </insert>
+  <delete id="OPTIMIZEtable">
+    OPTIMIZE TABLE t_log_upload;
+      </delete>
+  <insert id="CreatTable"  parameterType="java.lang.String">
+
+    select 1;
+    <if test="tableNames.indexOf(',t_log_upload,') == -1">
+      CREATE TABLE `t_log_upload` (
+      `f_id` bigint(20) NOT NULL AUTO_INCREMENT,
+      `f_RoomCD` varchar(30) DEFAULT NULL,
+      `f_UploadDataTypeEnum` varchar(100) DEFAULT NULL,
+      `f_timeType` varchar(45) DEFAULT NULL,
+      `f_msgId` mediumtext DEFAULT NULL,
+      `f_uploadTag` int(11) DEFAULT NULL COMMENT '0 未上传 1 已上传',
+      PRIMARY KEY (`f_id`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+    </if>
+  </insert>
+  <select id="selectTableNames" resultType="java.lang.String">
+    select table_name from information_schema.tables where table_schema= #{dbName,jdbcType=VARCHAR} and table_type='base table';
+  </select>
+</mapper>

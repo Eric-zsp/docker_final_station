@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+			http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-4.1.xsd"
+>
+
+    <!-- 配置数据源 -->
+    <bean id="defaultDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close" primary="true">
+        <property name="url" value="${spring.datasource.url}"/>
+        <property name="username" value="${spring.datasource.username}"/>
+        <property name="password" value="${spring.datasource.password}"/>
+        <property name="initialSize" value="${spring.datasource.initialSize}"/>
+        <property name="maxActive" value="${spring.datasource.maxActive}"/>
+        <property name="minIdle" value="${spring.datasource.minIdle}"/>
+        <property name="maxWait" value="${spring.datasource.maxWait}"/>
+        <property name="testOnBorrow" value="${spring.datasource.testOnBorrow}"/>
+        <property name="testOnReturn" value="${spring.datasource.testOnReturn}"/>
+        <property name="testWhileIdle" value="${spring.datasource.testWhileIdle}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${spring.datasource.timeBetweenEvictionRunsMillis}"/>
+        <property name="minEvictableIdleTimeMillis" value="${spring.datasource.minEvictableIdleTimeMillis}"/>
+        <property name="removeAbandoned" value="${spring.datasource.removeAbandoned}"/>
+        <property name="removeAbandonedTimeout" value="${spring.datasource.removeAbandonedTimeout}"/>
+        <property name="logAbandoned" value="${spring.datasource.logAbandoned}"/>
+        <property name="filters" value="${spring.datasource.filters}"/>
+        <qualifier value="finalstation" />
+    </bean>
+    <!--mybatis配置适用于spring 的sqlSession 工厂bean,两个参数:数据源，mybatis的xml 文件路径-->
+    <bean id="sqlSessionFactory"  class="org.mybatis.spring.SqlSessionFactoryBean" primary="true">
+        <property name="dataSource" ref="defaultDataSource"/>
+        <property name="mapperLocations" >
+            <list>
+                <value>classpath:top/funnycloud/iotapp/powerMonitor/finalstation/mapper/dbdefault/*.xml</value>
+            </list>
+        </property>
+        <qualifier value="finalstation" />
+    </bean>
+    <!-- 自动扫描 将Mapper接口生成代理注入到Spring中，这里我理解为dao 的层注入 -->
+    <bean  id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer" primary="true">
+        <property name="basePackage"  value="top.funnycloud.iotapp.powerMonitor.finalstation.dao.IDao.dbDefault" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+        <qualifier value="finalstation" />
+    </bean>
+
+
+    <!-- 动态数据源 -->
+    <bean id="DynamicDataSource" class="top.funnycloud.iotapp.powerMonitor.finalstation.dao.dataSource.DynamicDataSource" factory-method="getInstance">
+        <property name="targetDataSources">
+            <map key-type="java.lang.String">
+                <entry value-ref="defaultDataSource" key="defaultDataSource"/>
+            </map>
+        </property>
+        <property name="defaultTargetDataSource" ref="defaultDataSource"/>
+        <qualifier value="ciie_room_data" />
+    </bean>
+
+    <bean id="DynamicSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="DynamicDataSource"/>
+        <property name="mapperLocations" >
+            <list>
+                <value>classpath:top/funnycloud/iotapp/powerMonitor/finalstation/mapper/DyDao/*.xml</value>
+            </list>
+        </property>
+        <qualifier value="ciie_room_data" />
+    </bean>
+    <!-- 自动扫描 将Mapper接口生成代理注入到Spring中，这里我理解为dao 的层注入 -->
+    <bean  id="DynamicMapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer" primary="true">
+        <property name="basePackage"  value="top.funnycloud.iotapp.powerMonitor.finalstation.dao.IDao.DyDao" />
+        <property name="sqlSessionFactoryBeanName" value="DynamicSqlSessionFactory" />
+        <qualifier value="ciie_room_data" />
+    </bean>
+
+</beans>

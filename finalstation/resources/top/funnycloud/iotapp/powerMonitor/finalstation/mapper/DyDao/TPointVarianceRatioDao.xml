@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.funnycloud.iotapp.powerMonitor.finalstation.dao.IDao.DyDao.TPointVarianceRatioDao">
+  <resultMap id="BaseResultMap" type="top.funnycloud.iotdata.comm.report.model.roomdata.TPointVarianceRatioModel">
+    <id column="f_id" jdbcType="BIGINT" property="p_id" />
+    <result column="f_companycd" jdbcType="VARCHAR" property="p_companycd" />
+    <result column="f_projectcd" jdbcType="VARCHAR" property="p_projectcd" />
+    <result column="f_roomcd" jdbcType="VARCHAR" property="p_roomcd" />
+    <result column="f_pointcd" jdbcType="VARCHAR" property="p_pointcd" />
+    <result column="f_time" jdbcType="TIMESTAMP" property="p_time" />
+    <result column="f_ratio" jdbcType="DOUBLE" property="p_ratio" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    f_id, f_companycd, f_projectcd, f_roomcd, f_pointcd, f_time, f_ratio
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_point_variance_ratio
+    where f_id = #{p_id,jdbcType=BIGINT}
+  </select>
+  <select id="selectByParams" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_point_variance_ratio
+    where 1=1
+    <if test="companycd!=null and companycd!=''">
+      and  f_companycd = #{companycd,jdbcType=VARCHAR}
+    </if>
+    <if test="projectcd!=null and projectcd!=''">
+      and f_projectcd = #{projectcd,jdbcType=VARCHAR}
+    </if>
+    <if test="roomcd!=null and roomcd!=''">
+      and f_roomcd = #{roomcd,jdbcType=VARCHAR}
+    </if>
+    <if test="startTime!=null">
+      and f_time  <![CDATA[   >=  ]]>  #{startTime,jdbcType=TIMESTAMP}
+    </if>
+    <if test="endTime!=null">
+      and f_time  <![CDATA[  <  ]]>  #{endTime,jdbcType=TIMESTAMP}
+    </if>
+    <if test="pointcds!=null ">
+      and f_pointcd in
+      <foreach item="item"
+               index="index"
+               collection="pointcds"
+               open="("
+               separator=","
+               close=")">
+        #{item}
+      </foreach>
+    </if>
+  </select>
+  <insert id="insert" parameterType="top.funnycloud.iotdata.comm.report.model.roomdata.TPointVarianceRatioModel" useGeneratedKeys="true" keyProperty="p_id">
+    insert into t_point_variance_ratio (f_companycd, f_projectcd, f_roomcd, 
+      f_pointcd, f_time, f_ratio
+      )
+    values (#{p_companycd,jdbcType=VARCHAR}, #{p_projectcd,jdbcType=VARCHAR},
+    #{p_roomcd,jdbcType=VARCHAR}, #{p_pointcd,jdbcType=VARCHAR}, #{p_time,jdbcType=TIMESTAMP},
+    #{p_ratio,jdbcType=DOUBLE}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="top.funnycloud.iotdata.comm.report.model.roomdata.TPointVarianceRatioModel">
+    update t_point_variance_ratio
+    set f_pointcd = #{p_pointcd,jdbcType=VARCHAR},
+      f_time = #{p_time,jdbcType=TIMESTAMP},
+      f_ratio = #{p_ratio,jdbcType=DOUBLE}
+    where f_id = #{p_id,jdbcType=BIGINT}  and f_CompanyCD= #{p_companycd,jdbcType=VARCHAR}  and  f_ProjectCD= #{p_projectcd,jdbcType=VARCHAR} and  f_RoomCD= #{p_roomcd,jdbcType=VARCHAR}
+  </update>
+</mapper>

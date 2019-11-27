@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.funnycloud.iotapp.powerMonitor.finalstation.dao.IDao.DyDao.TPointValueDao">
+  <resultMap id="BaseResultMap" type="top.funnycloud.iotdata.comm.report.model.roomdata.TPointValueModel">
+    <id column="f_RecordID" jdbcType="BIGINT" property="p_recordid" />
+    <result column="f_DataType" jdbcType="VARCHAR" property="p_datatype" />
+    <result column="f_ReceivedTimes" jdbcType="CHAR" property="p_receivedtimes" />
+    <result column="f_UploadFlag" jdbcType="INTEGER" property="p_uploadflag" />
+    <result column="f_UploadTimes" jdbcType="TIMESTAMP" property="p_uploadtimes" />
+    <result column="f_CompanyCD" jdbcType="VARCHAR" property="p_companycd" />
+    <result column="f_ProjectCD" jdbcType="VARCHAR" property="p_projectcd" />
+    <result column="f_RoomCD" jdbcType="VARCHAR" property="p_roomcd" />
+    <result column="f_Remarks" jdbcType="VARCHAR" property="p_remarks" />
+    <result column="f_JsonData" jdbcType="VARCHAR" property="p_jsondata" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    f_RecordID, f_DataType, f_ReceivedTimes, f_UploadFlag, f_UploadTimes, f_CompanyCD,
+    f_ProjectCD, f_RoomCD, f_Remarks, f_JsonData
+  </sql>
+  <select id="selectByParam"  resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from  ${tableName}
+    where 1=1
+    <if test="companycd!=null and companycd!=''">
+      and  f_CompanyCD = #{companycd,jdbcType=VARCHAR}
+    </if>
+    <if test="projectcd!=null and projectcd!=''">
+      and f_ProjectCD = #{projectcd,jdbcType=VARCHAR}
+    </if>
+    <if test="roomcd!=null and roomcd!=''">
+      and f_RoomCD = #{roomcd,jdbcType=VARCHAR}
+    </if>
+    <if test="startTime!=null and startTime!=''">
+      and f_ReceivedTimes  <![CDATA[   >=  ]]>  #{startTime,jdbcType=CHAR}
+    </if>
+    <if test="endTime!=null and  endTime!=''">
+      and f_ReceivedTimes  <![CDATA[  <  ]]>  #{endTime,jdbcType=CHAR}
+    </if>
+    <if test="dataTypes!=null ">
+      and f_DataType in
+      <foreach item="item"
+               index="index"
+               collection="dataTypes"
+               open="("
+               separator=","
+               close=")">
+        #{item}
+      </foreach>
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from ${tableName}
+    where f_RecordID = #{recordid,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectByReceivedTime" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from ${tableName}
+    where f_CompanyCD = #{companycd,jdbcType=VARCHAR}   and f_ProjectCD = #{projectcd,jdbcType=VARCHAR}    and f_RoomCD = #{roomcd,jdbcType=VARCHAR}   and f_ReceivedTimes = #{creatTime,jdbcType=CHAR}
+  </select>
+  <select id="selectByReceivedTimeAndDataTypes" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from ${tableName}
+    where f_CompanyCD = #{companycd,jdbcType=VARCHAR}   and f_ProjectCD = #{projectcd,jdbcType=VARCHAR}    and f_RoomCD = #{roomcd,jdbcType=VARCHAR}   and f_ReceivedTimes = #{creatTime,jdbcType=CHAR}
+    <if test="dataTypes!=null ">
+      and f_DataType in
+      <foreach item="item"
+               index="index"
+               collection="dataTypes"
+               open="("
+               separator=","
+               close=")">
+        #{item}
+      </foreach>
+    </if>
+  </select>
+  <select id="selectLastObj"  resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from ${tableName}
+    where 1=1
+    <if test="companycd!=null and companycd!=''">
+    and  f_CompanyCD = #{companycd,jdbcType=VARCHAR}
+  </if>
+    <if test="projectcd!=null and projectcd!=''">
+      and f_ProjectCD = #{projectcd,jdbcType=VARCHAR}
+    </if>
+    <if test="roomcd!=null and roomcd!=''">
+      and f_RoomCD = #{roomcd,jdbcType=VARCHAR}
+    </if>
+    <if test="creatTime!=null and creatTime!=''">
+      and f_ReceivedTimes = #{creatTime,jdbcType=CHAR}
+    </if>
+  </select>
+
+
+  <insert id="upInsert" useGeneratedKeys="true" keyProperty="item.p_recordid" >
+    insert into ${tableName} ( f_DataType, f_ReceivedTimes,
+      f_UploadFlag, f_UploadTimes, f_CompanyCD,
+      f_ProjectCD, f_RoomCD, f_Remarks,
+      f_JsonData)
+    values (  #{item.p_datatype,jdbcType=VARCHAR}, #{item.p_receivedtimes,jdbcType=CHAR},
+      #{item.p_uploadflag,jdbcType=INTEGER}, #{item.p_uploadtimes,jdbcType=TIMESTAMP}, #{item.p_companycd,jdbcType=VARCHAR},
+      #{item.p_projectcd,jdbcType=VARCHAR}, #{item.p_roomcd,jdbcType=VARCHAR}, #{item.p_remarks,jdbcType=VARCHAR},
+      #{item.p_jsondata,jdbcType=CHAR})
+
+    ON DUPLICATE KEY UPDATE
+    f_UploadTimes = VALUES(f_UploadTimes),
+    f_JsonData = VALUES(f_JsonData)
+  </insert>
+
+  <insert id="upInserts"   useGeneratedKeys="true" keyProperty="list.p_recordid">
+
+    insert into ${tableName}  ( f_DataType, f_ReceivedTimes,
+    f_UploadFlag, f_UploadTimes, f_CompanyCD,
+    f_ProjectCD, f_RoomCD, f_Remarks,
+    f_JsonData)
+    values
+    <foreach collection="list" item="item" index="index" separator="," >
+      (  #{item.p_datatype,jdbcType=VARCHAR}, #{item.p_receivedtimes,jdbcType=CHAR},
+      #{item.p_uploadflag,jdbcType=INTEGER}, #{item.p_uploadtimes,jdbcType=TIMESTAMP}, #{item.p_companycd,jdbcType=VARCHAR},
+      #{item.p_projectcd,jdbcType=VARCHAR}, #{item.p_roomcd,jdbcType=VARCHAR}, #{item.p_remarks,jdbcType=VARCHAR},
+      #{item.p_jsondata,jdbcType=CHAR})
+    </foreach>
+
+    ON DUPLICATE KEY UPDATE
+    f_UploadTimes = VALUES(f_UploadTimes),
+    f_JsonData = VALUES(f_JsonData)
+  </insert>
+
+</mapper>

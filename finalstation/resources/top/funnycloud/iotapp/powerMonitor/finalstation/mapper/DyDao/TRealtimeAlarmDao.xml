@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.funnycloud.iotapp.powerMonitor.finalstation.dao.IDao.DyDao.TRealtimeAlarmDao">
+  <resultMap id="BaseResultMap" type="top.funnycloud.iotdata.comm.alarm.model.roomdata.TRealtimeAlarmModel">
+    <id column="f_RecordID" jdbcType="INTEGER" property="p_recordid" />
+    <result column="f_Description" jdbcType="VARCHAR" property="p_description" />
+    <result column="f_CreateTimes" jdbcType="TIMESTAMP" property="p_createtimes" />
+    <result column="f_PointCD" jdbcType="VARCHAR" property="p_pointcd" />
+    <result column="f_PointProperty" jdbcType="VARCHAR" property="p_pointProperty" />
+    <result column="f_Remarks" jdbcType="VARCHAR" property="p_remarks" />
+    <result column="f_CompanyCD" jdbcType="VARCHAR" property="p_companycd" />
+    <result column="f_ProjectCD" jdbcType="VARCHAR" property="p_projectcd" />
+    <result column="f_RoomCD" jdbcType="VARCHAR" property="p_roomcd" />
+    <result column="f_AlarmLevel" jdbcType="INTEGER" property="p_alarmlevel" />
+    <result column="f_manageAlarmID" jdbcType="CHAR" property="p_manageAlarmID" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    f_RecordID, f_Description, f_CreateTimes, f_PointCD, f_PointProperty,f_Remarks, f_CompanyCD, f_ProjectCD,
+    f_RoomCD, f_AlarmLevel,f_manageAlarmID
+  </sql>
+  <sql id="sql_Where">
+    <if test="companycd!=null and companycd!=''">
+      and  f_CompanyCD = #{companycd,jdbcType=VARCHAR}
+    </if>
+    <if test="projectcd!=null and projectcd!=''">
+      and f_ProjectCD = #{projectcd,jdbcType=VARCHAR}
+    </if>
+    <if test="roomcd!=null and roomcd!=''">
+      and f_RoomCD = #{roomcd,jdbcType=VARCHAR}
+    </if>
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_realtime_alarm
+    where f_RecordID = #{p_recordid,jdbcType=INTEGER}
+  </select>
+  <select id="selectByPrimaryKeys"  resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_realtime_alarm
+    where f_RecordID   in
+    <foreach item="item"
+             index="index"
+             collection="p_recordids"
+             open="("
+             separator=","
+             close=")">
+      #{item}
+    </foreach>
+  </select>
+  <select id="selectByParam" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_realtime_alarm
+    where  f_manageAlarmID  =  #{p_manageAlarmID,jdbcType=CHAR}
+    <include refid="sql_Where" />
+    order by f_RecordID desc
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_realtime_alarm
+    where f_RecordID = #{recordid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="top.funnycloud.iotdata.comm.alarm.model.roomdata.TRealtimeAlarmModel" useGeneratedKeys="true" keyProperty="p_recordid">
+
+    insert into t_realtime_alarm ( f_Description, f_CreateTimes,
+      f_PointCD,f_PointProperty, f_Remarks, f_CompanyCD,
+      f_ProjectCD, f_RoomCD, f_AlarmLevel,f_manageAlarmID)
+    values ( #{p_description,jdbcType=VARCHAR}, #{p_createtimes,jdbcType=TIMESTAMP},
+      #{p_pointcd,jdbcType=VARCHAR},  #{p_pointProperty,jdbcType=VARCHAR}, #{p_remarks,jdbcType=VARCHAR}, #{p_companycd,jdbcType=VARCHAR},
+      #{p_projectcd,jdbcType=VARCHAR}, #{p_roomcd,jdbcType=VARCHAR}, #{p_alarmlevel,jdbcType=INTEGER}, #{p_manageAlarmID,jdbcType=CHAR})
+  </insert>
+
+</mapper>

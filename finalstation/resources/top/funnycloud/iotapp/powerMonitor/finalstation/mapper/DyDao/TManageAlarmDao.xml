@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.funnycloud.iotapp.powerMonitor.finalstation.dao.IDao.DyDao.TManageAlarmDao">
+  <resultMap id="BaseResultMap" type="top.funnycloud.iotdata.comm.alarm.model.roomdata.TManageAlarmModel">
+    <id column="f_RecordID" jdbcType="CHAR" property="p_recordid" />
+    <result column="f_Description" jdbcType="VARCHAR" property="p_description" />
+    <result column="f_StartTimes" jdbcType="TIMESTAMP" property="p_starttimes" />
+    <result column="f_EndTimes" jdbcType="TIMESTAMP" property="p_endtimes" />
+    <result column="f_EquipmentCD" jdbcType="VARCHAR" property="p_equipmentcd" />
+    <result column="f_RoomCD" jdbcType="VARCHAR" property="p_roomcd" />
+    <result column="f_ProjectCD" jdbcType="VARCHAR" property="p_projectcd" />
+    <result column="f_CompanyCD" jdbcType="VARCHAR" property="p_companycd" />
+    <result column="f_Remarks" jdbcType="VARCHAR" property="p_remarks" />
+    <result column="f_UpdateTimes" jdbcType="TIMESTAMP" property="p_updatetimes" />
+    <result column="f_UserCD" jdbcType="VARCHAR" property="p_usercd" />
+    <result column="f_ExcuteFlag" jdbcType="INTEGER" property="p_excuteflag" />
+    <result column="f_NoticeFlag" jdbcType="INTEGER" property="p_noticeflag" />
+    <result column="f_AlarmFlag" jdbcType="INTEGER" property="p_alarmflag" />
+    <result column="f_PointCD" jdbcType="VARCHAR" property="p_pointCD" />
+    <result column="f_PointProperty" jdbcType="VARCHAR" property="p_pointProperty" />
+    <result column="f_UploadFlag" jdbcType="INTEGER" property="p_uploadflag" />
+    <result column="f_AlarmLevel" jdbcType="INTEGER" property="p_alarmLevel" />
+    <result column="f_UploadTimes" jdbcType="TIMESTAMP" property="p_uploadtimes" />
+    <result column="f_ExceptionType" jdbcType="INTEGER" property="p_exceptionType" />
+    <result column="f_IsMission" jdbcType="INTEGER" property="p_isMission" />
+  </resultMap>
+
+
+  <sql id="Base_Column_List">
+    f_RecordID, f_Description, f_StartTimes, f_EndTimes, f_EquipmentCD, f_RoomCD, f_ProjectCD, f_CompanyCD,
+    f_Remarks, f_UpdateTimes, f_UserCD, f_ExcuteFlag, f_NoticeFlag, f_AlarmFlag, f_PointCD,f_PointProperty, f_UploadFlag,
+    f_AlarmLevel, f_UploadTimes, f_ExceptionType,f_IsMission
+  </sql>
+  <sql id="CompanyCD_ProjectCD_RoomCD">
+    <if test="p_companycd!=null and p_companycd!=''">
+      and  f_CompanyCD = #{p_companycd,jdbcType=VARCHAR}
+    </if>
+    <if test="p_projectcd!=null and p_projectcd!=''">
+      and f_ProjectCD = #{p_projectcd,jdbcType=VARCHAR}
+    </if>
+    <if test="p_roomcd!=null and p_roomcd!=''">
+      and f_RoomCD = #{p_roomcd,jdbcType=VARCHAR}
+    </if>
+
+  </sql>
+  <sql id="searchPageParam">
+    <include refid="CompanyCD_ProjectCD_RoomCD" />
+    <if test="p_startTime!=null">
+      and f_StartTimes  <![CDATA[   >=  ]]>  #{p_startTime,jdbcType=TIMESTAMP}
+    </if>
+    <if test="p_endTime!=null">
+      and f_StartTimes  <![CDATA[  <  ]]>  #{p_endTime,jdbcType=TIMESTAMP}
+    </if>
+    <if test="p_state!=-1">
+      and f_ExcuteFlag  = #{p_state,jdbcType=INTEGER}
+    </if>
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_manage_alarm
+    where f_RecordID = #{p_recordid,jdbcType=INTEGER}
+  </select>
+  <select id="selectUnFinished"  resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_manage_alarm
+    where   f_StartTimes  <![CDATA[   <  ]]>  #{p_startTime,jdbcType=TIMESTAMP} and f_UploadFlag = -1
+  </select>
+
+  <select id="selectByParamCount"  resultType="java.lang.Integer">
+    select count(*) from t_manage_alarm where 1=1
+    <include refid="searchPageParam" />
+  </select>
+  <select id="selectByParamPage"   resultMap="BaseResultMap">
+    select * from t_manage_alarm where 1=1
+    <include refid="searchPageParam" />
+    order by f_RecordID desc
+    LIMIT  #{p_offset},#{p_limit}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from t_manage_alarm
+    where f_RecordID = #{p_recordid,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="top.funnycloud.iotdata.comm.alarm.model.roomdata.TManageAlarmModel"  >
+    insert into t_manage_alarm (f_RecordID ,f_Description, f_StartTimes, f_EndTimes,
+      f_EquipmentCD, f_RoomCD, f_ProjectCD,
+      f_CompanyCD, f_Remarks, f_UpdateTimes,
+      f_UserCD, f_ExcuteFlag, f_NoticeFlag,
+      f_AlarmFlag, f_PointCD,f_PointProperty, f_UploadFlag,
+      f_AlarmLevel, f_UploadTimes, f_ExceptionType,f_IsMission
+      )
+    values ( #{p_recordid,jdbcType=CHAR},#{p_description,jdbcType=VARCHAR}, #{p_starttimes,jdbcType=TIMESTAMP}, #{p_endtimes,jdbcType=TIMESTAMP},
+      #{p_equipmentcd,jdbcType=VARCHAR}, #{p_roomcd,jdbcType=VARCHAR}, #{p_projectcd,jdbcType=VARCHAR},
+      #{p_companycd,jdbcType=VARCHAR}, #{p_remarks,jdbcType=VARCHAR}, #{p_updatetimes,jdbcType=TIMESTAMP},
+      #{p_usercd,jdbcType=VARCHAR}, #{p_excuteflag,jdbcType=INTEGER}, #{p_noticeflag,jdbcType=INTEGER},
+      #{p_alarmflag,jdbcType=INTEGER}, #{p_pointCD,jdbcType=VARCHAR}, #{p_pointProperty,jdbcType=VARCHAR},0,
+      #{p_alarmLevel,jdbcType=INTEGER}, #{p_uploadtimes,jdbcType=TIMESTAMP}, #{p_exceptionType,jdbcType=INTEGER},#{p_isMission,jdbcType=INTEGER}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="top.funnycloud.iotdata.comm.alarm.model.roomdata.TManageAlarmModel">
+    update t_manage_alarm
+    set f_Description = #{p_description,jdbcType=VARCHAR},
+      f_StartTimes = #{p_starttimes,jdbcType=TIMESTAMP},
+      f_EndTimes = #{p_endtimes,jdbcType=TIMESTAMP},
+      f_EquipmentCD = #{p_equipmentcd,jdbcType=VARCHAR},
+      f_RoomCD = #{p_roomcd,jdbcType=VARCHAR},
+      f_ProjectCD = #{p_projectcd,jdbcType=VARCHAR},
+      f_CompanyCD = #{p_companycd,jdbcType=VARCHAR},
+      f_Remarks = #{p_remarks,jdbcType=VARCHAR},
+      f_UpdateTimes = #{p_updatetimes,jdbcType=TIMESTAMP},
+      f_UserCD = #{p_usercd,jdbcType=VARCHAR},
+      f_ExcuteFlag = #{p_excuteflag,jdbcType=INTEGER},
+      f_NoticeFlag = #{p_noticeflag,jdbcType=INTEGER},
+      f_AlarmFlag = #{p_alarmflag,jdbcType=INTEGER},
+      f_PointCD = #{p_pointCD,jdbcType=VARCHAR},
+      f_PointProperty = #{p_pointProperty,jdbcType=VARCHAR},
+      f_UploadFlag = #{p_uploadflag,jdbcType=INTEGER},
+      f_AlarmLevel = #{p_alarmLevel,jdbcType=INTEGER},
+      f_UploadTimes = #{p_uploadtimes,jdbcType=TIMESTAMP},
+      f_ExceptionType = #{p_exceptionType,jdbcType=INTEGER},
+      f_IsMission = #{p_isMission,jdbcType=INTEGER}
+    where f_RecordID = #{p_recordid,jdbcType=CHAR}
+  </update>
+
+
+</mapper>
