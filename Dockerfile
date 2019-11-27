@@ -8,8 +8,12 @@ MAINTAINER  Eric
 #文件到镜像中
 COPY  finalstation/  /finalstation/
 
+#同步宿主时区
+ volumes:  
+      - /etc/localtime:/etc/localtime 
+
 #暴露给容器外的端口: http tcp udp
 EXPOSE 8012 12306 12307
 
 #执行的命令
-ENTRYPOINT  ["java","-jar","/finalstation/iot-app-powerMonitor-finalstation-1.0-SNAPSHOT.jar"]   
+ENTRYPOINT  ["java","-jar","-Duser.timezone=GMT+08","/finalstation/iot-app-powerMonitor-finalstation-1.0-SNAPSHOT.jar"]   
