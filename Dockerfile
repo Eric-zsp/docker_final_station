@@ -8,13 +8,11 @@ MAINTAINER  Eric
 #文件到镜像中
 COPY  finalstation/  /finalstation/
 
-<<<<<<< HEAD
 
-=======
+
 #同步宿主时区
- volumes:  
-      - /etc/localtime:/etc/localtime 
->>>>>>> 603bc572b83a77fe3ce134d7ea47d30ef67de660
+# volumes:  
+#      - /etc/localtime:/etc/localtime 
 
 #暴露给容器外的端口: http tcp udp
 EXPOSE 8012 12306 12307
