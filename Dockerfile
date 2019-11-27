@@ -6,7 +6,7 @@ FROM openjdk:11.0.5-stretch
 MAINTAINER  Eric
 
 #文件到镜像中
-ADD  finalstation/  /finalstation/
+COPY  finalstation/  /finalstation/
 
 #暴露给容器外的端口: http tcp udp
 EXPOSE 8012 12306 12307
