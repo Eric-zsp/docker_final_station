@@ -1,6 +1,6 @@
 ###################################
 #定义基础环境，后续执行在此基础上进行的，即jdk环境
-FROM openjdk:11.0.5-stretch 
+FROM openjdk:8u232-stretch
 
 #指定作者
 MAINTAINER  Eric
